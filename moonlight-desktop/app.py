@@ -1,4 +1,3 @@
-from os import path
 import logging
 
 from yaml import safe_load
@@ -30,10 +29,10 @@ class App:
     TARGET_PROCESS = 'Moonlight'
 
     def __init__(self, argv):
-        if argv == None or len(argv) < 2:
-            raise RuntimeError('usage: {} [--debug] <config yaml path> <moonlight path>'.format(argv[0]))
+        if '--help' in argv:
+            raise RuntimeError('usage: {} [--debug] [config yaml path] [moonlight path]'.format(argv[0]))
 
-        self.config_filename = argv[1]
+        self.config_filename = argv[1] if len(argv) > 1 else None
         self.moonlight_path = argv[2] if len(argv) > 2 else None
 
         self.remap_keys = {}

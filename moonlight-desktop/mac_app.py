@@ -16,6 +16,9 @@ class MacApp(App):
     def __init__(self, argv):
         App.__init__(self, argv)
 
+        if self.config_filename is None:
+            self.config_filename = 'config/mac-client.yaml'
+
         from pynput._util.darwin import get_unicode_to_keycode_map
         self.UNICODE_TO_KEYCODE_MAP = get_unicode_to_keycode_map()
 

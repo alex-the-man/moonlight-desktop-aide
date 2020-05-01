@@ -1,4 +1,4 @@
-from os import system, path
+from os import system
 import logging
 
 from pynput import keyboard
