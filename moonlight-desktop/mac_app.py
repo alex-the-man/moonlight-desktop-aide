@@ -99,7 +99,7 @@ class MacApp(App):
         is_alt_key = keycode == Key.alt.value.vk or keycode == Key.alt_l.value.vk or keycode == Key.alt_r.value.vk
         is_cmd_key = keycode == Key.alt.value.vk or keycode == Key.cmd_l.value.vk or keycode == Key.cmd_r.value.vk
 
-        is_key_down = None;
+        is_key_down = None
         if is_ctrl_key:
             is_key_down = flags & Quartz.kCGEventFlagMaskControl == Quartz.kCGEventFlagMaskControl
         elif is_alt_key:

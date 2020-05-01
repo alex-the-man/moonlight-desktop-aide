@@ -9,9 +9,9 @@ remap_keys:
   - from: '<cmd_r>'
     to: '<f19>'
   - from: '<alt_l>'
-    to: '<f20>'
+    to: '<f17>'
   - from: '<alt_r>'
-    to: '<f20>'
+    to: '<f17>'
 
 passthrough_hotkeys:
   - '<ctrl>+<alt>+<shift>+q'
@@ -21,3 +21,5 @@ passthrough_hotkeys:
   - '<ctrl>+<alt>+<shift>+m'
   - '<cmd>+q'
   - '<cmd>+<tab>'
+
+mode: 'client'

@@ -6,6 +6,8 @@ from yaml import safe_load
 from pynput import keyboard
 from pynput.keyboard import Key, KeyCode
 
+import sys
+
 global logger
 logger = logging.getLogger('moonlight-desktop')
 
@@ -36,6 +38,7 @@ class App:
 
         self.remap_keys = {}
         self.passthrough_hotkeys = set()
+        self.mode = ''
 
         self.kb_controller = keyboard.Controller()
 
@@ -55,6 +58,9 @@ class App:
             logger.debug('remap_keys: {}'.format(self.remap_keys))
             logger.debug('passthrough_hotkeys: {}'.format(self.passthrough_hotkeys))
 
+            self.mode = config.get('mode')
+            if not self.mode in ['server', 'client']: raise RuntimeError('Invalid mode: {}'.format(self.mode))
+
     def start(self):
         logger.info('Targetting window/application with title/name "%s"', self.TARGET_PROCESS)
         
@@ -64,7 +70,10 @@ class App:
 
         try:
             self.listener.start()
-            return self.run_moonlight()
+            if self.mode == 'client':
+                return self.run_moonlight()
+            else:
+                sys.stdin.readlines()
         finally:
             self.listener.stop()
     
