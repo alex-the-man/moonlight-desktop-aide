@@ -1,15 +1,15 @@
 # Map ctrl -> F18, alt -> F19, cmd -> F20
 remap_keys:
   - from: '<ctrl_l>'
-    to: '<f18>'
+    to: '<f17>'
   - from: '<ctrl_r>'
-    to: '<f18>'
+    to: '<f17>'
   - from: '<cmd_l>'
     to: '<f19>'
   - from: '<cmd_r>'
     to: '<f19>'
   - from: '<alt_l>'
-    to: '<f17>'
+    to: '<f18>'
   - from: '<alt_r>'
     to: '<f17>'
 
@@ -19,7 +19,5 @@ passthrough_hotkeys:
   - '<ctrl>+<alt>+<shift>+x'
   - '<ctrl>+<alt>+<shift>+s'
   - '<ctrl>+<alt>+<shift>+m'
-  - '<cmd>+q'
-  - '<cmd>+<tab>'
 
 mode: 'client'

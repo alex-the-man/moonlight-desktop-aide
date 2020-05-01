@@ -19,6 +19,8 @@ class MacApp(App):
         from pynput._util.darwin import get_unicode_to_keycode_map
         self.UNICODE_TO_KEYCODE_MAP = get_unicode_to_keycode_map()
 
+        self.injected_keys = set()
+
     def get_active_window(self):
         active_window_name = (NSWorkspace.sharedWorkspace().activeApplication()['NSApplicationName'])
         return active_window_name
@@ -84,6 +86,12 @@ class MacApp(App):
         # If the key is in the passthrough hotkey list, bypass our modifiers filtering.
         if key_with_modifiers_tuple in self.passthrough_hotkeys:
             logger.debug('Passthrough hotkey: {}'.format(key_with_modifiers_tuple))
+
+            # Unpress injected keys
+            for injected_key in self.injected_keys:
+                self.kb_controller.touch(KeyCode.from_vk(injected_key), False)
+            self.injected_keys.clear()
+                
             # Simulate modifiers.
             if key_with_modifiers_tuple[0]: self.kb_controller.touch(Key.ctrl, is_key_down)
             if key_with_modifiers_tuple[1]: self.kb_controller.touch(Key.alt, is_key_down)
@@ -113,6 +121,10 @@ class MacApp(App):
             logger.debug('Remapping {}->{}'.format(keycode, to))
             # Simulate target key.
             self.kb_controller.touch(KeyCode.from_vk(to), is_key_down)
+            if is_key_down:
+                self.injected_keys.add(to)
+            else:
+                self.injected_keys.discard(to)
             return None
         return event
 
