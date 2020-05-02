@@ -12,6 +12,15 @@ from .app import App
 logger = logging.getLogger('moonlight-desktop')
 
 class WinApp(App):
+    def __init__(self, log_file_path, argv):
+        App.__init__(self, log_file_path, argv)
+
+        if self.config_filename is None:
+            self.config_filename = 'config/win-server.yaml'
+
+    def stop(self):
+        self.systray.stop()
+        
     def run_moonlight(self):
         raise NotImplementedError()
 
@@ -42,3 +51,4 @@ class WinApp(App):
 
     def open_file_with_associated_app(self, path):
         startfile(path, 'open')
+
