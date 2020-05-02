@@ -3,6 +3,7 @@ from os import path
 from tempfile import gettempdir
 import logging
 import traceback
+import sys
 
 def is_windows():
     return platform in ['Windows', 'win32', 'cygwin']
@@ -23,7 +24,8 @@ def setup_logger(log_file_path, is_debug=False):
     fileHandler = logging.FileHandler(log_file_path)
     fileHandler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
     logger.addHandler(fileHandler)
-    logger.addHandler(logging.StreamHandler())
+    if not hasattr(sys,"frozen"):
+        logger.addHandler(logging.StreamHandler())
 
     logger.info('Log file is at {}'.format(log_file_path))
     return logger
@@ -48,3 +50,5 @@ def main(argv=None):
         Tk().withdraw()
         stack_trace = "".join(traceback.format_exception(type(ex), ex, ex.__traceback__))
         messagebox.showerror('Moonlight Desktop', '{}\n\n{}'.format(ex, stack_trace))
+
+        return 1

@@ -81,9 +81,11 @@ class App:
         try:
             self.listener.start()
             if self.mode == 'client':
-                return self.systray.run(lambda systray: self.run_moonlight())
+                self.systray.run(lambda systray: self.run_moonlight())
+                return 0
             else:
                 self.systray.run()
+                return 0
         finally:
             self.listener.stop()
 
