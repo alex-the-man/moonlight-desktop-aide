@@ -1,20 +1,21 @@
 from os import system, path
+import subprocess
 import logging
 
 from pynput import keyboard
 from pynput.keyboard import Key, KeyCode
 
 from AppKit import NSWorkspace
+from Foundation import NSAppleScript
 import Quartz
 
 from app import App
 
-global logger
 logger = logging.getLogger('moonlight-desktop')
 
 class MacApp(App):
-    def __init__(self, argv):
-        App.__init__(self, argv)
+    def __init__(self, log_file_path, argv):
+        App.__init__(self, log_file_path, argv)
 
         if self.config_filename is None:
             self.config_filename = 'config/mac-client.yaml'
@@ -43,10 +44,21 @@ class MacApp(App):
             logger.error('Cannot find Moonlight at "{}".'.format(self.moonlight_path))
             return 1
 
+        self.systray.visible = True
+
         logger.info('Listening for keys until Moonlight quits...')
         exit_code = system('open -W {}'.format(self.moonlight_path))
         logger.info('Moonlight terminated with code %d. Exiting...', exit_code)
+
+        self.systray.stop()
+
         return exit_code
+
+    def stop(self):
+        appleScriptBody = 'quit app "{}"'.format(self.TARGET_PROCESS)
+        appleScriptObj = NSAppleScript.alloc().initWithSource_(appleScriptBody)
+        appleScriptObj.executeAndReturnError_(None)
+        exit(0)
 
     def darwin_key_event_listener(self, event_type, event):
         try:
@@ -133,3 +145,7 @@ class MacApp(App):
 
     def char_to_keycode(self, char):
         return self.UNICODE_TO_KEYCODE_MAP.get(char)
+
+    def open_file_with_associated_app(self, path):
+        logger.info('open "{}"'.format(path))
+        subprocess.Popen(['open', path])

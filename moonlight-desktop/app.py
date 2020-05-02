@@ -1,13 +1,13 @@
 import logging
+from PIL import Image
 
 from yaml import safe_load
 
 from pynput import keyboard
 from pynput.keyboard import Key, KeyCode
 
-import sys
+import pystray
 
-global logger
 logger = logging.getLogger('moonlight-desktop')
 
 def parse_single_key(key_name):
@@ -28,10 +28,11 @@ def parse_single_key(key_name):
 class App:
     TARGET_PROCESS = 'Moonlight'
 
-    def __init__(self, argv):
+    def __init__(self, log_file_path, argv):
         if '--help' in argv:
             raise RuntimeError('usage: {} [--debug] [config yaml path] [moonlight path]'.format(argv[0]))
-
+        
+        self.log_file_path = log_file_path
         self.config_filename = argv[1] if len(argv) > 1 else None
         self.moonlight_path = argv[2] if len(argv) > 2 else None
 
@@ -40,6 +41,16 @@ class App:
         self.mode = ''
 
         self.kb_controller = keyboard.Controller()
+
+        self.init_systray()
+
+    def init_systray(self):
+        icon = Image.open('icons/systray.png')
+        menu_open_log = pystray.MenuItem('View log', lambda: self.open_file_with_associated_app(self.log_file_path))
+        menu_quit = pystray.MenuItem('Quit', lambda: self.stop())
+        menu = pystray.Menu(menu_open_log, menu_quit)
+
+        self.systray = pystray.Icon('Moonlight Desktop', icon=icon, title='Moonlight Desktop', menu=menu)
 
     def load_config(self):
         logger.info('Loading config from %s.', self.config_filename)
@@ -70,11 +81,14 @@ class App:
         try:
             self.listener.start()
             if self.mode == 'client':
-                return self.run_moonlight()
+                return self.systray.run(lambda systray: self.run_moonlight())
             else:
-                sys.stdin.readlines()
+                self.systray.run()
         finally:
             self.listener.stop()
+
+    def stop(self):
+        raise NotImplementedError()
     
     def pack_hotkey_set_to_tuple(self, hotkey_set):
         is_ctrl_down = False
@@ -104,6 +118,9 @@ class App:
             raise RuntimeError('Faild to translate non modifier key to physical key code: {}'.format(main_key))
 
         return (is_ctrl_down, is_alt_down, is_cmd_down, is_shift_down, main_keycode)
+
+    def open_file_with_associated_app(self, path):
+        raise NotImplementedError()
         
     def get_active_window(self):
         raise NotImplementedError()

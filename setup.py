@@ -18,8 +18,9 @@ setup(
     version='0.1',
     packages=find_packages(),
     install_requires=[
-        'pynput>= 1.6.8',
-        'pyyaml>=5.3.1'
+        'pynput>=1.6.8',
+        'pyyaml>=5.3.1',
+        'pystray>=0.15.0'
     ],
     extras_require={
         ":sys_platform=='win32'": ['pypiwin32', 'py2exe'],

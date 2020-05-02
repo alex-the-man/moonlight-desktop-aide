@@ -4,8 +4,6 @@ from tempfile import gettempdir
 import logging
 import traceback
 
-LOG_FILE_PATH = gettempdir() + '/moonlight-desktop.log'
-
 def is_windows():
     return platform in ['Windows', 'win32', 'cygwin']
 
@@ -18,30 +16,29 @@ def check_argv_for_non_positional_flag(flag, argv):
         argv.remove(flag)
     return value
 
-def setup_logger(is_debug=False):
+def setup_logger(log_file_path, is_debug=False):
     logger = logging.getLogger('moonlight-desktop')
     logger.setLevel(logging.DEBUG if is_debug else logging.INFO)
 
-    fileHandler = logging.FileHandler(LOG_FILE_PATH)
+    fileHandler = logging.FileHandler(log_file_path)
     fileHandler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
     logger.addHandler(fileHandler)
     logger.addHandler(logging.StreamHandler())
 
-    logger.info('Log file is at {}'.format(LOG_FILE_PATH))
-
+    logger.info('Log file is at {}'.format(log_file_path))
     return logger
 
 def main(argv=None):
     try:
-        global logger
-        logger = setup_logger(check_argv_for_non_positional_flag('--debug', argv))
+        log_file_path = gettempdir() + '/moonlight-desktop.log'
+        logger = setup_logger(log_file_path, check_argv_for_non_positional_flag('--debug', argv))
 
         if is_windows():
             from win_app import WinApp
-            app = WinApp(argv)
+            app = WinApp(log_file_path, argv)
         elif is_mac():
             from mac_app import MacApp
-            app = MacApp(argv)
+            app = MacApp(log_file_path, argv)
         else:
             raise RuntimeError('Unsupported platform')
 

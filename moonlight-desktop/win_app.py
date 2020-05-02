@@ -1,23 +1,17 @@
-from os import system
+from os import startfile
 import logging
 
 from pynput import keyboard
 from pynput.keyboard import Key, KeyCode
 
-from win32gui import GetForegroundWindow, GetWindowText
 from win32api import VkKeyScan
 from win32con import WM_KEYDOWN, WM_KEYUP, WM_SYSKEYDOWN, WM_SYSKEYUP
 
 from app import App
 
-global logger
 logger = logging.getLogger('moonlight-desktop')
 
 class WinApp(App):
-    def get_active_window(self):
-        window = GetForegroundWindow()
-        return GetWindowText(window)
-
     def run_moonlight(self):
         raise NotImplementedError()
 
@@ -45,3 +39,6 @@ class WinApp(App):
             self.listener.suppress_event()
             return True
         return True
+
+    def open_file_with_associated_app(self, path):
+        startfile(path, 'open')
