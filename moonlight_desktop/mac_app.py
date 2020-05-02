@@ -131,7 +131,7 @@ class MacApp(App):
             is_key_down = flags & Quartz.kCGEventFlagMaskCommand == Quartz.kCGEventFlagMaskCommand
 
         # Translate the key
-        if not is_key_down is None and keycode in self.remap_keys:
+        if is_key_down is not None and keycode in self.remap_keys:
             to = self.remap_keys.get(keycode)
             logger.debug('Remapping {}->{}'.format(keycode, to))
             # Simulate target key.

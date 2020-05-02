@@ -103,7 +103,7 @@ class App:
             elif key == Key.cmd: is_cmd_down = True
             elif key == Key.shift: is_shift_down = True
             else:
-                if not main_key is None: raise RuntimeError('Only one modifier key in hotkey is allowed: {}'.format(hotkey_set))
+                if main_key is not None: raise RuntimeError('Only one modifier key in hotkey is allowed: {}'.format(hotkey_set))
                 main_key = key
 
         if main_key is None:
@@ -112,7 +112,7 @@ class App:
         if isinstance(main_key, Key):
             main_keycode = main_key.value.vk
 
-        if isinstance(main_key, KeyCode) and not main_key.char is None:
+        if isinstance(main_key, KeyCode) and main_key.char is not None:
             main_keycode = self.char_to_keycode(main_key.char)
         if main_keycode is None:
             raise RuntimeError('Faild to translate non modifier key to physical key code: {}'.format(main_key))
