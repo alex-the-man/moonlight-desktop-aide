@@ -9,7 +9,7 @@ from AppKit import NSWorkspace
 from Foundation import NSAppleScript
 import Quartz
 
-from app import App
+from .app import App
 
 logger = logging.getLogger('moonlight-desktop')
 

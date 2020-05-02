@@ -34,10 +34,10 @@ def main(argv=None):
         logger = setup_logger(log_file_path, check_argv_for_non_positional_flag('--debug', argv))
 
         if is_windows():
-            from win_app import WinApp
+            from .win_app import WinApp
             app = WinApp(log_file_path, argv)
         elif is_mac():
-            from mac_app import MacApp
+            from .mac_app import MacApp
             app = MacApp(log_file_path, argv)
         else:
             raise RuntimeError('Unsupported platform')

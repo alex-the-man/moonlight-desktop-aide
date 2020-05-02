@@ -1,5 +1,5 @@
 import sys
-from __init__ import main
+from moonlight_desktop.__init__ import main
 from sys import exit
 
 if __name__ == '__main__':

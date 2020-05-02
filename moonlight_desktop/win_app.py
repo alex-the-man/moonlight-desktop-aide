@@ -7,7 +7,7 @@ from pynput.keyboard import Key, KeyCode
 from win32api import VkKeyScan
 from win32con import WM_KEYDOWN, WM_KEYUP, WM_SYSKEYDOWN, WM_SYSKEYUP
 
-from app import App
+from .app import App
 
 logger = logging.getLogger('moonlight-desktop')
 
