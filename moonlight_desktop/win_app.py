@@ -13,7 +13,7 @@ logger = logging.getLogger('moonlight-desktop')
 
 class WinApp(App):
     def __init__(self, log_file_path, argv):
-        App.__init__(self, log_file_path, argv)
+        App.__init__(self, log_file_path, 'icons/systray-win.png', argv)
 
         if self._config_filename is None:
             self._config_filename = 'config/win-server.yaml'

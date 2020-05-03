@@ -26,7 +26,7 @@ def parse_single_key(key_name):
         raise RuntimeError('Invalid key specified: {}'.format(key_name))
 
 class App:
-    def __init__(self, log_file_path, argv):
+    def __init__(self, log_file_path, systray_icon_path, argv):
         if '--help' in argv:
             raise RuntimeError('usage: {} [--debug] [config yaml path] [moonlight path]'.format(argv[0]))
         
@@ -38,10 +38,10 @@ class App:
 
         self._kb_controller = keyboard.Controller()
 
-        self._init_systray()
+        self._init_systray(systray_icon_path)
 
-    def _init_systray(self):
-        icon = Image.open('icons/systray.png')
+    def _init_systray(self, systray_icon_path):
+        icon = Image.open(systray_icon_path)
         menu_open_log = pystray.MenuItem('View log', lambda: self._open_file_with_associated_app(self._log_file_path))
         menu_quit = pystray.MenuItem('Quit', lambda: self.stop())
         menu = pystray.Menu(menu_open_log, menu_quit)

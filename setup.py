@@ -15,6 +15,7 @@ if platform == 'darwin':
                 plist='py2app/Info.plist',
                 packages=['PIL'],
                 resources=['config', 'icons'],
+                iconfile='py2app/app.icns'
             )
         ),
         app=['main.py'],

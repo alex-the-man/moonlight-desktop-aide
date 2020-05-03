@@ -47,7 +47,7 @@ def get_moonlight_window_bounds():
 
 class MacApp(App):
     def __init__(self, log_file_path, argv):
-        App.__init__(self, log_file_path, argv)
+        App.__init__(self, log_file_path, 'icons/systray-mac.png', argv)
 
         if self._config_filename is None:
             self._config_filename = 'config/mac-client.yaml'
