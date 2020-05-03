@@ -1,4 +1,6 @@
-# Map ctrl -> F18, alt -> F19, cmd -> F20
+# F17 -> Ctrl
+# F18 -> Windows Key
+# F19 -> Alt
 remap_keys:
   - from: '<ctrl_l>'
     to: '<f17>'
@@ -11,7 +13,7 @@ remap_keys:
   - from: '<alt_l>'
     to: '<f18>'
   - from: '<alt_r>'
-    to: '<f17>'
+    to: '<f17>' # For Magic Keyboard, map right alt to f17 (ctrl)
 
 passthrough_hotkeys:
   - '<ctrl>+<alt>+<shift>+q'
@@ -19,5 +21,3 @@ passthrough_hotkeys:
   - '<ctrl>+<alt>+<shift>+x'
   - '<ctrl>+<alt>+<shift>+s'
   - '<ctrl>+<alt>+<shift>+m'
-
-mode: 'client'

@@ -15,40 +15,50 @@ class WinApp(App):
     def __init__(self, log_file_path, argv):
         App.__init__(self, log_file_path, argv)
 
-        if self.config_filename is None:
-            self.config_filename = 'config/win-server.yaml'
+        if self._config_filename is None:
+            self._config_filename = 'config/win-server.yaml'
+
+    def start(self):
+        logger.info('Targetting window/application with title/name "%s"', self.TARGET_PROCESS)
+        
+        self._load_config()
+
+        self._create_key_listener()
+
+        try:
+            self._listener.start()
+            self.systray.run()
+            return 0
+        finally:
+            self._listener.stop()
 
     def stop(self):
         self.systray.stop()
-        
-    def run_moonlight(self):
-        raise NotImplementedError()
 
-    def create_key_listener(self):
-        if len(self.passthrough_hotkeys) > 0: raise NotImplementedError()
-        return keyboard.Listener(
+    def _create_key_listener(self):
+        if len(self._passthrough_hotkeys) > 0: raise NotImplementedError()
+        self._listener = keyboard.Listener(
             on_press=None,
             on_release=None,
             suppress=False,
-            win32_event_filter=self.win32_key_event_listener)
+            win32_event_filter=self._win32_key_event_listener)
 
-    def char_to_keycode(self, char):
+    def _char_to_keycode(self, char):
         return VkKeyScan(char)
 
-    def win32_key_event_listener(self, msg, data):
+    def _open_file_with_associated_app(self, path):
+        startfile(path, 'open')
+
+    def _win32_key_event_listener(self, msg, data):
         is_key_down = msg == WM_KEYDOWN or msg == WM_SYSKEYDOWN
         keycode = data.vkCode
         # logger.debug('vkCode {} {}'.format(data.vkCode, hex(data.vkCode)))
 
-        if keycode in self.remap_keys:
-            to = self.remap_keys.get(keycode)
+        if keycode in self._remap_keys:
+            to = self._remap_keys.get(keycode)
             logger.debug('Remapping {}->{}'.format(keycode, to))
             # Simulate target key.
-            self.kb_controller.touch(KeyCode.from_vk(to), is_key_down)
-            self.listener.suppress_event()
+            self._kb_controller.touch(KeyCode.from_vk(to), is_key_down)
+            self._listener.suppress_event()
             return True
         return True
-
-    def open_file_with_associated_app(self, path):
-        startfile(path, 'open')
-

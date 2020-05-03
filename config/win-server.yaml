@@ -1,4 +1,6 @@
-# Map ctrl -> F18, alt -> F19, cmd -> F20
+# F17 -> Ctrl
+# F18 -> Windows Key
+# F19 -> Alt
 remap_keys:
   - from: '<f17>'
     to: '<ctrl>'
@@ -6,5 +8,3 @@ remap_keys:
     to: '<cmd>'
   - from: '<f19>'
     to: '<alt>'
-
-mode: 'server'
