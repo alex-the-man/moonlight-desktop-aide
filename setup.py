@@ -65,7 +65,7 @@ setup(
     ],
     extras_require={
         ':sys_platform=="win32"': ['pywin32', 'py2exe @ https://github.com/albertosottile/py2exe/releases/download/v0.9.3.2/py2exe-0.9.3.2-cp37-none-win32.whl'],
-        ':sys_platform=="darwin"': ['pyobjc-framework-Quartz>=6.2', 'py2app>=0.21'],
+        ':sys_platform=="darwin"': ['pyobjc-framework-Quartz>=6.2', 'py2app>=0.21', 'psutil'],
     },
     **extra_options
 )

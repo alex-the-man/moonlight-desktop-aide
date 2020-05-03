@@ -26,8 +26,6 @@ def parse_single_key(key_name):
         raise RuntimeError('Invalid key specified: {}'.format(key_name))
 
 class App:
-    TARGET_PROCESS = 'Moonlight'
-
     def __init__(self, log_file_path, argv):
         if '--help' in argv:
             raise RuntimeError('usage: {} [--debug] [config yaml path] [moonlight path]'.format(argv[0]))

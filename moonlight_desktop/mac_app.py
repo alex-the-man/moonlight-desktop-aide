@@ -1,24 +1,49 @@
 from os import system, path
+from time import sleep
 import subprocess
 import logging
+from psutil import pid_exists
 
-from pynput import keyboard
+from pynput import keyboard, mouse
 from pynput.keyboard import Key, KeyCode
 from pynput._util.darwin import get_unicode_to_keycode_map
 
-from AppKit import NSWorkspace
+from AppKit import NSWorkspace, NSRunningApplication
 from Foundation import NSAppleScript
 import Quartz
 
 from .app import App
 
+MOUSE_CLIP_X_MARGIN = 50
+UNICODE_TO_KEYCODE_MAP = get_unicode_to_keycode_map()
+MOONLIGHT_BUNDLE_ID = 'com.moonlight-stream.Moonlight'
+MOONLIGHT_APP_NAME = 'Moonlight'
+
 logger = logging.getLogger('moonlight-desktop')
 
-def get_active_window():
-    active_window_name = (NSWorkspace.sharedWorkspace().activeApplication()['NSApplicationName'])
-    return active_window_name
+def clip(val, min_, max_):
+    return min_ if val < min_ else max_ if val > max_ else val
 
-UNICODE_TO_KEYCODE_MAP = get_unicode_to_keycode_map()
+def get_active_app_bundle_id():
+    return NSWorkspace.sharedWorkspace().frontmostApplication().bundleIdentifier()
+
+moonlight_window_bounds_cache = None
+def get_moonlight_window_bounds():
+    global moonlight_window_bounds_cache
+    if moonlight_window_bounds_cache is None or moonlight_window_bounds_cache[1] < 0:
+        moonlight_window_bounds_cache = (None, 10)
+        for window in Quartz.CGWindowListCopyWindowInfo(Quartz.kCGWindowListOptionOnScreenOnly, Quartz.kCGNullWindowID):
+            if window['kCGWindowOwnerName'] == MOONLIGHT_APP_NAME and window['kCGWindowAlpha'] > 0.5:
+                bounds = window['kCGWindowBounds']
+                if bounds['Height'] > 50:
+                    moonlight_window_bounds_cache = (window['kCGWindowBounds'], 10)
+                    # logger.debug(window)
+                    return window['kCGWindowBounds']
+        return None
+    else:
+        moonlight_window_bounds_cache = (moonlight_window_bounds_cache[0], moonlight_window_bounds_cache[1] - 1)
+        return moonlight_window_bounds_cache[0]
+    return None
 
 class MacApp(App):
     def __init__(self, log_file_path, argv):
@@ -31,33 +56,73 @@ class MacApp(App):
         self._injected_keys = set()
 
     def start(self):
-        logger.info('Targetting window/application with title/name "%s"', self.TARGET_PROCESS)
-        
         self._load_config()
 
         self._create_listeners()
 
         try:
-            self.listener.start()
+            self.kb_listener.start()
             self.systray.run(lambda systray: self._run_moonlight())
             return 0
         finally:
-            self.listener.stop()
+            self.mouse_listener.stop()
+            self.kb_listener.stop()
 
     def stop(self):
-        appleScriptBody = 'quit app "{}"'.format(self.TARGET_PROCESS)
-        appleScriptObj = NSAppleScript.alloc().initWithSource_(appleScriptBody)
-        appleScriptObj.executeAndReturnError_(None)
+        try:
+            self.mouse_listener.stop()
+            self.kb_listener.stop()
+            for app in NSRunningApplication.runningApplicationsWithBundleIdentifier_(MOONLIGHT_BUNDLE_ID):
+                count = 0
+                pid = app.processIdentifier()
+                while count < 30 and pid_exists(pid): # app.isTerminated() is always false.
+                    app.forceTerminate()
+                    sleep(1)
+                    count += 1
+        except Exception:
+            logger.exception('Failed to stop Moonlight.') 
         
     def _char_to_keycode(self, char):
         return UNICODE_TO_KEYCODE_MAP.get(char)
 
     def _create_listeners(self):
-        self.listener = keyboard.Listener(
-            on_press=None,
-            on_release=None,
+        self.mouse_listener = mouse.Listener(
+            suppress=True,
+            darwin_intercept=self._darwin_mouse_event_listener)
+        self.kb_listener = keyboard.Listener(
             suppress=True,
             darwin_intercept=self._darwin_key_event_listener)
+
+    def _darwin_mouse_event_listener(self, event_type, event):
+        try:
+            # If Moonlight isn't the active window, don't process.
+            if get_active_app_bundle_id() != MOONLIGHT_BUNDLE_ID:
+                return event
+            if event_type == Quartz.kCGEventMouseMoved:
+                # Clip the mouse to keep it close to the Moonlight window.
+                # Extend Moonlight window bounds horizontally.
+                bounds = get_moonlight_window_bounds()
+                if bounds is not None:
+                    min_x = bounds['X']
+                    max_x = min_x + bounds['Width']
+                    min_x -= MOUSE_CLIP_X_MARGIN
+                    max_x += MOUSE_CLIP_X_MARGIN
+                    min_y = 0
+                    max_y = bounds['Y'] + bounds['Height']
+                    (x, y) = Quartz.CGEventGetLocation(event)
+                    clipped_x = clip(x, min_x, max_x)
+                    clipped_y = clip(y, min_y, max_y)
+                    # logger.info('x: [{}, {}] y:[{}, {}]'.format(min_x, max_x, min_y, max_y))
+                    if x != clipped_x or y != clipped_y:
+                        Quartz.CGSetLocalEventsSuppressionInterval(0)
+                        Quartz.CGWarpMouseCursorPosition((clipped_x, clipped_y))
+                        Quartz.CGSetLocalEventsSuppressionInterval(0.25)
+                        
+            return event
+        except Exception:
+            # Make sure mouse events are still being passed in error case
+            logger.exception('Exception was thrown in the mouse event listener.')
+            return event
 
     def _darwin_key_event_listener(self, event_type, event):
         try:
@@ -67,7 +132,7 @@ class MacApp(App):
                 return event
 
             # If Moonlight isn't the active window, don't process.
-            if get_active_window() != self.TARGET_PROCESS:
+            if get_active_app_bundle_id() != MOONLIGHT_BUNDLE_ID:
                 return event
 
             # Parsing the event.
@@ -154,8 +219,8 @@ class MacApp(App):
             return 1
 
         self.systray.visible = True
-
-        logger.info('Listening for keys until Moonlight quits...')
+        self.mouse_listener.start()
+        logger.info('Listening for key & mouse events until Moonlight quits...')
         exit_code = system('open -W {}'.format(self._moonlight_path))
         logger.info('Moonlight terminated with code %d. Exiting...', exit_code)
 

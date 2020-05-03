@@ -19,8 +19,6 @@ class WinApp(App):
             self._config_filename = 'config/win-server.yaml'
 
     def start(self):
-        logger.info('Targetting window/application with title/name "%s"', self.TARGET_PROCESS)
-        
         self._load_config()
 
         self._create_key_listener()
