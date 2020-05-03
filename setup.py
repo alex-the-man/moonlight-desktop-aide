@@ -15,7 +15,7 @@ if platform == 'darwin':
                 plist='py2app/Info.plist',
                 packages=['PIL'],
                 resources=['config', 'icons'],
-                iconfile='py2app/app.icns'
+                iconfile='py2app/app.icns',
             )
         ),
         app=['main.py'],
@@ -50,6 +50,7 @@ elif platform == 'win32':
         windows= [dict(
             script='main.py',
             dest_base='moonlight-desktop',
+            icon_resources=[(1, 'py2exe/app.ico')]
         )],
         data_files=find_data_files('', '', ['icons/*.*', 'config/*.*'])
     )
