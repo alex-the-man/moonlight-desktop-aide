@@ -1,5 +1,6 @@
 from os import system, path
 from time import sleep
+from threading import Thread
 import subprocess
 import logging
 from psutil import pid_exists
@@ -27,22 +28,13 @@ def clip(val, min_, max_):
 def get_active_app_bundle_id():
     return NSWorkspace.sharedWorkspace().frontmostApplication().bundleIdentifier()
 
-moonlight_window_bounds_cache = None
 def get_moonlight_window_bounds():
-    global moonlight_window_bounds_cache
-    if moonlight_window_bounds_cache is None or moonlight_window_bounds_cache[1] < 0:
-        moonlight_window_bounds_cache = (None, 10)
-        for window in Quartz.CGWindowListCopyWindowInfo(Quartz.kCGWindowListOptionOnScreenOnly, Quartz.kCGNullWindowID):
-            if window['kCGWindowOwnerName'] == MOONLIGHT_APP_NAME and window['kCGWindowAlpha'] > 0.5:
-                bounds = window['kCGWindowBounds']
-                if bounds['Height'] > 50:
-                    moonlight_window_bounds_cache = (window['kCGWindowBounds'], 10)
-                    # logger.debug(window)
-                    return window['kCGWindowBounds']
-        return None
-    else:
-        moonlight_window_bounds_cache = (moonlight_window_bounds_cache[0], moonlight_window_bounds_cache[1] - 1)
-        return moonlight_window_bounds_cache[0]
+    for window in Quartz.CGWindowListCopyWindowInfo(Quartz.kCGWindowListOptionOnScreenOnly, Quartz.kCGNullWindowID):
+        if window['kCGWindowOwnerName'] == MOONLIGHT_APP_NAME and window['kCGWindowAlpha'] > 0.5:
+            bounds = window['kCGWindowBounds']
+            if bounds['Height'] > 50:
+                # logger.debug(window)
+                return window['kCGWindowBounds']
     return None
 
 class MacApp(App):
@@ -62,6 +54,9 @@ class MacApp(App):
 
         try:
             self.kb_listener.start()
+            self.enable_input_handling = False
+            self.update_moonlight_window_bounds_thread = Thread(target=self._update_moonlight_window_bounds_loop, daemon=True)
+            self.update_moonlight_window_bounds_thread.start()
             self.systray.run(lambda systray: self._run_moonlight())
             return 0
         finally:
@@ -81,7 +76,18 @@ class MacApp(App):
                     count += 1
         except Exception:
             logger.exception('Failed to stop Moonlight.') 
-        
+    
+    def _update_moonlight_window_bounds_loop(self):
+        # If the window isn't the foremost window, and isn't in full screen mode (y != 0)
+        # Don't clip.
+        while True:
+            self.enable_input_handling = False
+            if get_active_app_bundle_id() == MOONLIGHT_BUNDLE_ID:
+                self._bounds = get_moonlight_window_bounds()
+                self.enable_input_handling = self._bounds is not None and self._bounds['Y'] == 0
+            # print(self.enable_input_handling)
+            sleep(0.25)
+
     def _char_to_keycode(self, char):
         return UNICODE_TO_KEYCODE_MAP.get(char)
 
@@ -96,28 +102,25 @@ class MacApp(App):
     def _darwin_mouse_event_listener(self, event_type, event):
         try:
             # If Moonlight isn't the active window, don't process.
-            if get_active_app_bundle_id() != MOONLIGHT_BUNDLE_ID:
-                return event
-            if event_type == Quartz.kCGEventMouseMoved:
+            if event_type == Quartz.kCGEventMouseMoved and self.enable_input_handling and self._bounds is not None:
+                bounds = self._bounds
                 # Clip the mouse to keep it close to the Moonlight window.
                 # Extend Moonlight window bounds horizontally.
-                bounds = get_moonlight_window_bounds()
-                if bounds is not None:
-                    min_x = bounds['X']
-                    max_x = min_x + bounds['Width']
-                    min_x -= MOUSE_CLIP_X_MARGIN
-                    max_x += MOUSE_CLIP_X_MARGIN
-                    min_y = 0
-                    max_y = bounds['Y'] + bounds['Height']
-                    (x, y) = Quartz.CGEventGetLocation(event)
-                    clipped_x = clip(x, min_x, max_x)
-                    clipped_y = clip(y, min_y, max_y)
-                    # logger.info('x: [{}, {}] y:[{}, {}]'.format(min_x, max_x, min_y, max_y))
-                    if x != clipped_x or y != clipped_y:
-                        Quartz.CGSetLocalEventsSuppressionInterval(0)
-                        Quartz.CGWarpMouseCursorPosition((clipped_x, clipped_y))
-                        Quartz.CGSetLocalEventsSuppressionInterval(0.25)
-                        
+                min_x = bounds['X']
+                max_x = min_x + bounds['Width']
+                min_x -= MOUSE_CLIP_X_MARGIN
+                max_x += MOUSE_CLIP_X_MARGIN
+                min_y = 0
+                max_y = bounds['Y'] + bounds['Height']
+                (x, y) = Quartz.CGEventGetLocation(event)
+                clipped_x = clip(x, min_x, max_x)
+                clipped_y = clip(y, min_y, max_y)
+                # logger.info('x: [{}, {}] y:[{}, {}]'.format(min_x, max_x, min_y, max_y))
+                if x != clipped_x or y != clipped_y:
+                    Quartz.CGSetLocalEventsSuppressionInterval(0)
+                    Quartz.CGWarpMouseCursorPosition((clipped_x, clipped_y))
+                    Quartz.CGSetLocalEventsSuppressionInterval(0.25)
+                    
             return event
         except Exception:
             # Make sure mouse events are still being passed in error case
@@ -132,7 +135,7 @@ class MacApp(App):
                 return event
 
             # If Moonlight isn't the active window, don't process.
-            if get_active_app_bundle_id() != MOONLIGHT_BUNDLE_ID:
+            if not self.enable_input_handling:
                 return event
 
             # Parsing the event.
