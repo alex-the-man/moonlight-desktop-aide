@@ -44,9 +44,13 @@ class App:
         icon = Image.open(systray_icon_path)
         menu_open_log = pystray.MenuItem('View log', lambda: self._open_file_with_associated_app(self._log_file_path))
         menu_quit = pystray.MenuItem('Quit', lambda: self.stop())
-        menu = pystray.Menu(menu_open_log, menu_quit)
+
+        menu = self._create_pystray_menu(menu_open_log, menu_quit)
 
         self.systray = pystray.Icon('Moonlight Desktop', icon=icon, title='Moonlight Desktop', menu=menu)
+
+    def _create_pystray_menu(self, *items):
+        return pystray.Menu(*items)
 
     def _load_config(self):
         logger.info('Loading config from %s.', self._config_filename)

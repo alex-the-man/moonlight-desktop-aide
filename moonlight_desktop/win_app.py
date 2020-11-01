@@ -1,8 +1,10 @@
-from os import startfile
+from os import startfile, system
 import logging
 
 from pynput import keyboard
 from pynput.keyboard import Key, KeyCode
+
+import pystray
 
 from win32api import VkKeyScan
 from win32con import WM_KEYDOWN, WM_KEYUP, WM_SYSKEYDOWN, WM_SYSKEYUP
@@ -40,6 +42,13 @@ class WinApp(App):
             on_release=None,
             suppress=False,
             win32_event_filter=self._win32_key_event_listener)
+
+    def _create_pystray_menu(self, *items):
+        items = (pystray.MenuItem('Disconnect RDP', lambda: self._disconnect_rdp()),) + items
+        return App._create_pystray_menu(self, *items)
+
+    def _disconnect_rdp(self):
+        system('%WINDIR%\\sysnative\\tscon.exe 1 /dest:console')
 
     def _char_to_keycode(self, char):
         return VkKeyScan(char)
