@@ -16,6 +16,7 @@ if platform == 'darwin':
                 packages=['PIL'],
                 resources=['config', 'icons'],
                 iconfile='py2app/app.icns',
+                includes=['pystray._darwin', 'pynput.keyboard._darwin', 'pynput.mouse._darwin'],
             )
         ),
         app=['main.py'],
