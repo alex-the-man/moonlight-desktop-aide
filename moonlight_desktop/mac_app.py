@@ -81,11 +81,12 @@ class MacApp(App):
         # If the window isn't the foremost window, and isn't in full screen mode (y != 0)
         # Don't clip.
         while True:
-            self.enable_input_handling = False
+            enable_input_handling = False
             if get_active_app_bundle_id() == MOONLIGHT_BUNDLE_ID:
                 self._bounds = get_moonlight_window_bounds()
-                self.enable_input_handling = self._bounds is not None and self._bounds['Y'] == 0
+                enable_input_handling = self._bounds is not None and self._bounds['Y'] == 0
             # print(self.enable_input_handling)
+            self.enable_input_handling = enable_input_handling
             sleep(0.25)
 
     def _char_to_keycode(self, char):
