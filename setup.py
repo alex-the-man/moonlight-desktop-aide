@@ -61,7 +61,7 @@ setup(
     version='0.1',
     packages=find_packages(),
     install_requires=[
-        'pynput>=1.6.8',
+        'pynput>=1.7.1',
         'pyyaml>=5.3.1',
         'pystray>=0.15.0',
         'pillow==5.3.0',

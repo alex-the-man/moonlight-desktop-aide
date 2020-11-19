@@ -102,8 +102,12 @@ class App:
         if isinstance(main_key, Key):
             main_keycode = main_key.value.vk
 
-        if isinstance(main_key, KeyCode) and main_key.char is not None:
-            main_keycode = self._char_to_keycode(main_key.char)
+        if isinstance(main_key, KeyCode):
+            if main_key.vk is not None:
+                main_keycode = main_key.vk
+            else:
+                main_keycode = self._char_to_keycode(main_key.char)
+
         if main_keycode is None:
             raise RuntimeError('Faild to translate non modifier key to physical key code: {}'.format(main_key))
 
