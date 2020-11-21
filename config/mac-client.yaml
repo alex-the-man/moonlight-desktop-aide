@@ -20,6 +20,7 @@ passthrough_hotkeys:
   - '<ctrl>+<alt>+<shift>+z'
   - '<ctrl>+<alt>+<shift>+x'
   - '<ctrl>+<alt>+<shift>+s'
+  - '<ctrl>+<alt>+<shift>+m'
   # Our hotkey parsing routine maps 0..9 keys to the numpad keycodes, not the regular num keycodes.
   # Specify the keycodes of the regular num keys to workaround the issue.
   - '<ctrl>+<18>' # 1
