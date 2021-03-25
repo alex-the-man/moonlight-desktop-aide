@@ -14,7 +14,7 @@ pyobjc-core==6.2
 pyobjc-framework-Cocoa==6.2
 pyobjc-framework-Quartz==6.2
 pystray==0.15.0
-PyYAML==5.3.1
+PyYAML==5.4
 six==1.14.0
 toml==0.10.0
 typed-ast==1.4.1
