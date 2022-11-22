@@ -64,7 +64,7 @@ setup(
         'pynput>=1.7.1',
         'pyyaml>=5.3.1',
         'pystray>=0.15.0',
-        'pillow==5.3.0',
+        'pillow==9.3.0',
     ],
     extras_require={
         ':sys_platform=="win32"': ['pywin32', 'py2exe @ https://github.com/albertosottile/py2exe/releases/download/v0.9.3.2/py2exe-0.9.3.2-cp37-none-win32.whl'],
